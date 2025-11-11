@@ -1,11 +1,38 @@
-import { StatusBar } from "expo-status-bar";
-import { Text, View } from "react-native";
+import { router } from "expo-router";
+import { useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Index() {
-    return (
-        <View className="flex-1 justify-center items-center bg-black">
-            <Text className="text-red-500">Edit app/index.tsx to edit this screen.</Text>
-            <StatusBar style="auto" />
-        </View>
-    );
+    const { user } = useAuth();
+
+    useEffect(() => {
+        if (user) {
+            const primaryRole = user.roles[0] || "user";
+            switch (primaryRole) {
+                case "super_admin":
+                    router.replace("/super_admin");
+                    break;
+                case "admin":
+                    router.replace("/admin");
+                    break;
+                case "operator":
+                    router.replace("/operator");
+                    break;
+                case "user":
+                    router.replace("/user");
+                    break;
+                case "sopir":
+                    router.replace("/sopir");
+                    break;
+                default:
+                    router.replace("/user");
+                    break;
+            }
+        } else {
+            // @ts-ignore
+            router.replace("/login");
+        }
+    }, [user]);
+
+    return null; // Redirecting, no UI needed
 }
