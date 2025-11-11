@@ -1,6 +1,8 @@
 import { Stack } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
+import { PaperProvider } from "react-native-paper";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
+import { paperTheme } from "../utils/paperTheme";
 
 import "../global.css";
 
@@ -24,8 +26,10 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
     return (
-        <AuthProvider>
-            <RootLayoutNav />
-        </AuthProvider>
+        <PaperProvider theme={paperTheme}>
+            <AuthProvider>
+                <RootLayoutNav />
+            </AuthProvider>
+        </PaperProvider>
     );
 }

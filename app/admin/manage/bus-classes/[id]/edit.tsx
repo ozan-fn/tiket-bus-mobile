@@ -1,4 +1,3 @@
-import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/utils/api";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -17,7 +16,6 @@ interface BusClass {
 }
 
 export default function EditBusClassScreen() {
-    const { logout } = useAuth();
     const { id } = useLocalSearchParams();
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
@@ -31,9 +29,7 @@ export default function EditBusClassScreen() {
     const fetchBusClass = async () => {
         try {
             setFetchLoading(true);
-            console.log("Fetching bus class data...");
             const response = await api.get(`/kelas-bus/${id}`);
-            console.log("Bus class data:", response.data);
             const busClass: BusClass = response.data;
 
             setFormData({
@@ -43,12 +39,8 @@ export default function EditBusClassScreen() {
                 jumlah_kursi: busClass.jumlah_kursi.toString(),
             });
         } catch (error: any) {
-            console.error("Error fetching bus class:", error);
-            console.error("Error response:", error.response);
             if (error.response?.status === 401) {
                 Alert.alert("Error", "Akses tidak diizinkan");
-                await logout();
-                router.replace("/login");
             } else {
                 Alert.alert("Error", "Gagal memuat data kelas bus");
                 router.back();
@@ -78,24 +70,16 @@ export default function EditBusClassScreen() {
             await api.put(`/kelas-bus/${id}`, submitData);
             Alert.alert("Berhasil", "Data kelas bus berhasil diperbarui", [{ text: "OK", onPress: () => router.back() }]);
         } catch (error: any) {
-            console.error("Error updating bus class:", error);
             if (error.response?.status === 422) {
                 Alert.alert("Error Validasi", "Periksa kembali data yang Anda masukkan");
             } else if (error.response?.status === 401) {
                 Alert.alert("Error", "Akses tidak diizinkan");
-                await logout();
-                router.replace("/login");
             } else {
                 Alert.alert("Error", `Gagal memperbarui kelas bus: ${error.response?.data?.message || error.message}`);
             }
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleLogout = async () => {
-        await logout();
-        router.replace("/login");
     };
 
     if (fetchLoading) {
@@ -121,51 +105,25 @@ export default function EditBusClassScreen() {
                 <View className="bg-white p-6 rounded-lg shadow-sm">
                     <View className="mb-4">
                         <Text className="text-gray-700 font-semibold mb-2">ID Bus *</Text>
-                        <TextInput
-                            className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
-                            placeholder="Masukkan ID bus"
-                            keyboardType="numeric"
-                            value={formData.bus_id}
-                            onChangeText={(text) => setFormData((prev) => ({ ...prev, bus_id: text }))}
-                        />
+                        <TextInput className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800" placeholder="Masukkan ID bus" keyboardType="numeric" value={formData.bus_id} onChangeText={(text) => setFormData((prev) => ({ ...prev, bus_id: text }))} />
                     </View>
 
                     <View className="mb-4">
                         <Text className="text-gray-700 font-semibold mb-2">Nama Kelas *</Text>
-                        <TextInput
-                            className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
-                            placeholder="Masukkan nama kelas (contoh: Ekonomi, VIP)"
-                            value={formData.nama_kelas}
-                            onChangeText={(text) => setFormData((prev) => ({ ...prev, nama_kelas: text }))}
-                        />
+                        <TextInput className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800" placeholder="Masukkan nama kelas (contoh: Ekonomi, VIP)" value={formData.nama_kelas} onChangeText={(text) => setFormData((prev) => ({ ...prev, nama_kelas: text }))} />
                     </View>
 
                     <View className="mb-4">
                         <Text className="text-gray-700 font-semibold mb-2">Posisi *</Text>
-                        <TextInput
-                            className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
-                            placeholder="Masukkan posisi (contoh: depan, belakang)"
-                            value={formData.posisi}
-                            onChangeText={(text) => setFormData((prev) => ({ ...prev, posisi: text }))}
-                        />
+                        <TextInput className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800" placeholder="Masukkan posisi (contoh: depan, belakang)" value={formData.posisi} onChangeText={(text) => setFormData((prev) => ({ ...prev, posisi: text }))} />
                     </View>
 
                     <View className="mb-6">
                         <Text className="text-gray-700 font-semibold mb-2">Jumlah Kursi *</Text>
-                        <TextInput
-                            className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
-                            placeholder="Masukkan jumlah kursi"
-                            keyboardType="numeric"
-                            value={formData.jumlah_kursi}
-                            onChangeText={(text) => setFormData((prev) => ({ ...prev, jumlah_kursi: text }))}
-                        />
+                        <TextInput className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800" placeholder="Masukkan jumlah kursi" keyboardType="numeric" value={formData.jumlah_kursi} onChangeText={(text) => setFormData((prev) => ({ ...prev, jumlah_kursi: text }))} />
                     </View>
 
-                    <TouchableOpacity
-                        className={`p-4 rounded-lg ${loading ? "bg-gray-400" : "bg-purple-500"}`}
-                        onPress={handleSubmit}
-                        disabled={loading}
-                    >
+                    <TouchableOpacity className={`p-4 rounded-lg ${loading ? "bg-gray-400" : "bg-purple-500"}`} onPress={handleSubmit} disabled={loading}>
                         {loading ? (
                             <View className="flex-row justify-center items-center">
                                 <ActivityIndicator size="small" color="#ffffff" />
@@ -174,12 +132,6 @@ export default function EditBusClassScreen() {
                         ) : (
                             <Text className="text-white text-center font-semibold">Perbarui Kelas Bus</Text>
                         )}
-                    </TouchableOpacity>
-                </View>
-
-                <View className="mt-6">
-                    <TouchableOpacity className="bg-gray-800 p-4 rounded-lg" onPress={handleLogout}>
-                        <Text className="text-white text-center font-semibold">Logout</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>

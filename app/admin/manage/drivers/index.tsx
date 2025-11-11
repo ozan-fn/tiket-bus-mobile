@@ -1,4 +1,3 @@
-import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/utils/api";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -23,7 +22,6 @@ interface Driver {
 }
 
 export default function DriversScreen() {
-    const { logout } = useAuth();
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -32,19 +30,13 @@ export default function DriversScreen() {
     const fetchDrivers = async (page = 1) => {
         try {
             setLoading(true);
-            console.log("Fetching drivers from API...");
             const response = await api.get(`/sopir?page=${page}&per_page=10`);
-            console.log("Drivers API response:", response.data);
             setDrivers(response.data.data || []);
             setTotalPages(response.data.last_page || 1);
             setCurrentPage(page);
         } catch (error: any) {
-            console.error("Error fetching drivers:", error);
-            console.error("Error response:", error.response);
             if (error.response?.status === 401) {
                 Alert.alert("Error", "Akses tidak diizinkan");
-                await logout();
-                router.replace("/login");
             } else {
                 Alert.alert("Error", `Gagal memuat sopir: ${error.response?.data?.message || error.message}`);
             }
@@ -69,17 +61,11 @@ export default function DriversScreen() {
                         Alert.alert("Berhasil", "Sopir berhasil dihapus");
                         fetchDrivers(currentPage);
                     } catch (error: any) {
-                        console.error("Error deleting driver:", error);
                         Alert.alert("Error", "Gagal menghapus sopir");
                     }
                 },
             },
         ]);
-    };
-
-    const handleLogout = async () => {
-        await logout();
-        router.replace("/login");
     };
 
     return (
@@ -143,11 +129,7 @@ export default function DriversScreen() {
                 {/* Pagination */}
                 {totalPages > 1 && (
                     <View className="flex-row justify-center items-center mt-6 space-x-2">
-                        <TouchableOpacity
-                            className={`px-4 py-2 rounded ${currentPage === 1 ? "bg-gray-300" : "bg-red-500"}`}
-                            disabled={currentPage === 1}
-                            onPress={() => fetchDrivers(currentPage - 1)}
-                        >
+                        <TouchableOpacity className={`px-4 py-2 rounded ${currentPage === 1 ? "bg-gray-300" : "bg-red-500"}`} disabled={currentPage === 1} onPress={() => fetchDrivers(currentPage - 1)}>
                             <Text className={`text-sm ${currentPage === 1 ? "text-gray-500" : "text-white"}`}>Sebelumnya</Text>
                         </TouchableOpacity>
 
@@ -155,24 +137,14 @@ export default function DriversScreen() {
                             Halaman {currentPage} dari {totalPages}
                         </Text>
 
-                        <TouchableOpacity
-                            className={`px-4 py-2 rounded ${currentPage === totalPages ? "bg-gray-300" : "bg-red-500"}`}
-                            disabled={currentPage === totalPages}
-                            onPress={() => fetchDrivers(currentPage + 1)}
-                        >
+                        <TouchableOpacity className={`px-4 py-2 rounded ${currentPage === totalPages ? "bg-gray-300" : "bg-red-500"}`} disabled={currentPage === totalPages} onPress={() => fetchDrivers(currentPage + 1)}>
                             <Text className={`text-sm ${currentPage === totalPages ? "text-gray-500" : "text-white"}`}>Selanjutnya</Text>
                         </TouchableOpacity>
                     </View>
                 )}
 
-                <View className="mt-6">
-                    <TouchableOpacity className="bg-gray-800 p-4 rounded-lg" onPress={handleLogout}>
-                        <Text className="text-white text-center font-semibold">Logout</Text>
-                    </TouchableOpacity>
-                </View>
+                <StatusBar style="auto" />
             </ScrollView>
-
-            <StatusBar style="auto" />
         </SafeAreaView>
     );
 }

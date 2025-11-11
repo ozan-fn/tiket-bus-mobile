@@ -1,4 +1,3 @@
-import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/utils/api";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -7,7 +6,6 @@ import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CreateBusClassScreen() {
-    const { logout } = useAuth();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         bus_id: "",
@@ -32,24 +30,16 @@ export default function CreateBusClassScreen() {
             await api.post("/kelas-bus", submitData);
             Alert.alert("Berhasil", "Kelas bus berhasil ditambahkan", [{ text: "OK", onPress: () => router.back() }]);
         } catch (error: any) {
-            console.error("Error creating bus class:", error);
             if (error.response?.status === 422) {
                 Alert.alert("Error Validasi", "Periksa kembali data yang Anda masukkan");
             } else if (error.response?.status === 401) {
                 Alert.alert("Error", "Akses tidak diizinkan");
-                await logout();
-                router.replace("/login");
             } else {
                 Alert.alert("Error", `Gagal menambahkan kelas bus: ${error.response?.data?.message || error.message}`);
             }
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleLogout = async () => {
-        await logout();
-        router.replace("/login");
     };
 
     return (
@@ -66,51 +56,25 @@ export default function CreateBusClassScreen() {
                 <View className="bg-white p-6 rounded-lg shadow-sm">
                     <View className="mb-4">
                         <Text className="text-gray-700 font-semibold mb-2">ID Bus *</Text>
-                        <TextInput
-                            className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
-                            placeholder="Masukkan ID bus"
-                            keyboardType="numeric"
-                            value={formData.bus_id}
-                            onChangeText={(text) => setFormData((prev) => ({ ...prev, bus_id: text }))}
-                        />
+                        <TextInput className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800" placeholder="Masukkan ID bus" keyboardType="numeric" value={formData.bus_id} onChangeText={(text) => setFormData((prev) => ({ ...prev, bus_id: text }))} />
                     </View>
 
                     <View className="mb-4">
                         <Text className="text-gray-700 font-semibold mb-2">Nama Kelas *</Text>
-                        <TextInput
-                            className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
-                            placeholder="Masukkan nama kelas (contoh: Ekonomi, VIP)"
-                            value={formData.nama_kelas}
-                            onChangeText={(text) => setFormData((prev) => ({ ...prev, nama_kelas: text }))}
-                        />
+                        <TextInput className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800" placeholder="Masukkan nama kelas (contoh: Ekonomi, VIP)" value={formData.nama_kelas} onChangeText={(text) => setFormData((prev) => ({ ...prev, nama_kelas: text }))} />
                     </View>
 
                     <View className="mb-4">
                         <Text className="text-gray-700 font-semibold mb-2">Posisi *</Text>
-                        <TextInput
-                            className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
-                            placeholder="Masukkan posisi (contoh: depan, belakang)"
-                            value={formData.posisi}
-                            onChangeText={(text) => setFormData((prev) => ({ ...prev, posisi: text }))}
-                        />
+                        <TextInput className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800" placeholder="Masukkan posisi (contoh: depan, belakang)" value={formData.posisi} onChangeText={(text) => setFormData((prev) => ({ ...prev, posisi: text }))} />
                     </View>
 
                     <View className="mb-6">
                         <Text className="text-gray-700 font-semibold mb-2">Jumlah Kursi *</Text>
-                        <TextInput
-                            className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
-                            placeholder="Masukkan jumlah kursi"
-                            keyboardType="numeric"
-                            value={formData.jumlah_kursi}
-                            onChangeText={(text) => setFormData((prev) => ({ ...prev, jumlah_kursi: text }))}
-                        />
+                        <TextInput className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800" placeholder="Masukkan jumlah kursi" keyboardType="numeric" value={formData.jumlah_kursi} onChangeText={(text) => setFormData((prev) => ({ ...prev, jumlah_kursi: text }))} />
                     </View>
 
-                    <TouchableOpacity
-                        className={`p-4 rounded-lg ${loading ? "bg-gray-400" : "bg-purple-500"}`}
-                        onPress={handleSubmit}
-                        disabled={loading}
-                    >
+                    <TouchableOpacity className={`p-4 rounded-lg ${loading ? "bg-gray-400" : "bg-purple-500"}`} onPress={handleSubmit} disabled={loading}>
                         {loading ? (
                             <View className="flex-row justify-center items-center">
                                 <ActivityIndicator size="small" color="#ffffff" />
@@ -119,12 +83,6 @@ export default function CreateBusClassScreen() {
                         ) : (
                             <Text className="text-white text-center font-semibold">Tambah Kelas Bus</Text>
                         )}
-                    </TouchableOpacity>
-                </View>
-
-                <View className="mt-6">
-                    <TouchableOpacity className="bg-gray-800 p-4 rounded-lg" onPress={handleLogout}>
-                        <Text className="text-white text-center font-semibold">Logout</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
