@@ -19,6 +19,8 @@ function RootLayoutNav() {
     return <Stack screenOptions={{ headerShown: false }} />;
 }
 
+import "../global.css"
+
 export default function RootLayout() {
     return (
         <AuthProvider>
