@@ -22,7 +22,7 @@ export default function RoutesScreen() {
     const fetchRoutes = async (page = 1) => {
         try {
             setLoading(true);
-            const response = await api.get(`/rute?page=${page}&per_page=10`);
+            const response = await api.get(`/api/rute?page=${page}&per_page=10`);
             setRoutes(response.data.data || []);
             setTotalPages(response.data.last_page || 1);
             setCurrentPage(page);
@@ -49,7 +49,7 @@ export default function RoutesScreen() {
                 style: "destructive",
                 onPress: async () => {
                     try {
-                        await api.delete(`/rute/${id}`);
+                        await api.delete(`/api/rute/${id}`);
                         Alert.alert("Berhasil", "Rute berhasil dihapus");
                         fetchRoutes(currentPage);
                     } catch (error: any) {

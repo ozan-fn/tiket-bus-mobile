@@ -1,13 +1,12 @@
 import { Stack } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
-import { PaperProvider } from "react-native-paper";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
-import { paperTheme } from "../utils/paperTheme";
 
+import { StatusBar } from "expo-status-bar";
 import "../global.css";
 
 function RootLayoutNav() {
-    const { user, isLoading } = useAuth();
+    const { isLoading } = useAuth();
 
     if (isLoading) {
         return (
@@ -17,19 +16,14 @@ function RootLayoutNav() {
         );
     }
 
-    if (!user) {
-        return <Stack screenOptions={{ headerShown: false }} />;
-    }
-
     return <Stack screenOptions={{ headerShown: false }} />;
 }
 
 export default function RootLayout() {
     return (
-        <PaperProvider theme={paperTheme}>
-            <AuthProvider>
-                <RootLayoutNav />
-            </AuthProvider>
-        </PaperProvider>
+        <AuthProvider>
+            <RootLayoutNav />
+            <StatusBar style="auto" />
+        </AuthProvider>
     );
 }

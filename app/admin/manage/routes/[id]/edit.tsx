@@ -33,7 +33,7 @@ export default function EditRouteScreen() {
 
     const fetchRoute = async () => {
         try {
-            const response = await api.get(`/rute/${id}`);
+            const response = await api.get(`/api/rute/${id}`);
             const route: Route = response.data.data;
             setFormData({
                 asal_terminal_id: route.asal_terminal_id.toString(),
@@ -48,7 +48,7 @@ export default function EditRouteScreen() {
 
     const fetchTerminals = async () => {
         try {
-            const response = await api.get("/terminal");
+            const response = await api.get("/api/terminal");
             setTerminals(response.data.data || []);
         } catch (error: any) {
             Alert.alert("Error", "Gagal memuat terminal");
@@ -73,7 +73,7 @@ export default function EditRouteScreen() {
 
         setLoading(true);
         try {
-            const response = await api.put(`/rute/${id}`, {
+            const response = await api.put(`/api/rute/${id}`, {
                 asal_terminal_id: parseInt(formData.asal_terminal_id),
                 tujuan_terminal_id: parseInt(formData.tujuan_terminal_id),
             });

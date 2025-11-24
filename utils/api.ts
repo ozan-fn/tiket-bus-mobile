@@ -11,10 +11,8 @@ const api: AxiosInstance = axios.create({
     },
 });
 
-// Interceptor untuk menambahkan token jika ada
 api.interceptors.request.use(async (config) => {
     const token = await SecureStore.getItemAsync("token");
-    console.log(token);
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }

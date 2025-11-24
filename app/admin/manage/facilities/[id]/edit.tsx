@@ -25,7 +25,7 @@ export default function EditFacilityScreen() {
     const fetchFacility = async () => {
         try {
             setFetchLoading(true);
-            const response = await api.get(`/fasilitas/${id}`);
+            const response = await api.get(`/api/fasilitas/${id}`);
             const facility: Facility = response.data;
             setFormData({
                 nama: facility.nama,
@@ -58,7 +58,7 @@ export default function EditFacilityScreen() {
 
         try {
             setLoading(true);
-            await api.put(`/fasilitas/${id}`, formData);
+            await api.put(`/api/fasilitas/${id}`, formData);
             Alert.alert("Success", "Facility updated successfully", [{ text: "OK", onPress: () => router.back() }]);
         } catch (error: any) {
             console.error("Error updating facility:", error);

@@ -35,7 +35,7 @@ export default function CreateBusScheduleScreen() {
 
     const fetchSchedules = async () => {
         try {
-            const response = await api.get("/jadwal");
+            const response = await api.get("/api/jadwal");
             setSchedules(response.data.data || []);
         } catch (error: any) {
             Alert.alert("Error", "Gagal memuat jadwal");
@@ -44,7 +44,7 @@ export default function CreateBusScheduleScreen() {
 
     const fetchBusClasses = async () => {
         try {
-            const response = await api.get("/kelas-bus");
+            const response = await api.get("/api/kelas-bus");
             setBusClasses(response.data.data || []);
         } catch (error: any) {
             Alert.alert("Error", "Gagal memuat kelas bus");
@@ -64,7 +64,7 @@ export default function CreateBusScheduleScreen() {
 
         setLoading(true);
         try {
-            const response = await api.post("/jadwal-kelas-bus", {
+            const response = await api.post("/api/jadwal-kelas-bus", {
                 jadwal_id: parseInt(formData.jadwal_id),
                 kelas_bus_id: parseInt(formData.kelas_bus_id),
                 harga: parseInt(formData.harga),

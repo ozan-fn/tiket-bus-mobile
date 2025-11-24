@@ -7,32 +7,27 @@ export default function Index() {
 
     useEffect(() => {
         if (user) {
-            const primaryRole = user.roles[0] || "user";
-            switch (primaryRole) {
-                case "super_admin":
-                    router.replace("/super_admin");
-                    break;
-                case "admin":
-                    router.replace("/admin");
-                    break;
-                case "operator":
-                    router.replace("/operator");
-                    break;
+            switch (user.role) {
+                // case "super_admin":
+                //     router.replace("/super_admin");
+                //     break;
+                // case "admin":
+                //     router.replace("/admin");
+                //     break;
                 case "user":
                     router.replace("/user");
                     break;
-                case "sopir":
-                    router.replace("/sopir");
-                    break;
+                // case "sopir":
+                //     router.replace("/sopir");
+                //     break;
                 default:
                     router.replace("/user");
                     break;
             }
         } else {
-            // @ts-ignore
-            router.replace("/login");
+            router.replace("/landing");
         }
     }, [user]);
 
-    return null; // Redirecting, no UI needed
+    return null;
 }

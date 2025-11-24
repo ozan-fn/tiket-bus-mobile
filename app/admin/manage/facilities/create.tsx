@@ -22,7 +22,7 @@ export default function CreateFacilityScreen() {
 
         try {
             setLoading(true);
-            await api.post("/fasilitas", formData);
+            await api.post("/api/fasilitas", formData);
             Alert.alert("Success", "Facility created successfully", [{ text: "OK", onPress: () => router.back() }]);
         } catch (error: any) {
             console.error("Error creating facility:", error);

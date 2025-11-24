@@ -24,7 +24,7 @@ export default function FacilitiesScreen() {
     const fetchFacilities = async (page = 1) => {
         try {
             setLoading(true);
-            const response = await api.get(`/fasilitas?page=${page}&per_page=10`);
+            const response = await api.get(`/api/fasilitas?page=${page}&per_page=10`);
             setFacilities(response.data.data || []);
             setTotalPages(response.data.last_page || 1);
             setCurrentPage(page);
@@ -54,7 +54,7 @@ export default function FacilitiesScreen() {
                 style: "destructive",
                 onPress: async () => {
                     try {
-                        await api.delete(`/fasilitas/${id}`);
+                        await api.delete(`/api/fasilitas/${id}`);
                         Alert.alert("Success", "Facility deleted successfully");
                         fetchFacilities(currentPage);
                     } catch (error: any) {

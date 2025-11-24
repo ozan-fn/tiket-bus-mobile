@@ -23,7 +23,7 @@ export default function TerminalsScreen() {
     const fetchTerminals = async (page = 1) => {
         try {
             setLoading(true);
-            const response = await api.get(`/terminal?page=${page}&per_page=10`);
+            const response = await api.get(`/api/terminal?page=${page}&per_page=10`);
             setTerminals(response.data.data || []);
             setTotalPages(response.data.last_page || 1);
             setCurrentPage(page);
@@ -50,7 +50,7 @@ export default function TerminalsScreen() {
                 style: "destructive",
                 onPress: async () => {
                     try {
-                        await api.delete(`/terminal/${id}`);
+                        await api.delete(`/api/terminal/${id}`);
                         Alert.alert("Berhasil", "Terminal berhasil dihapus");
                         fetchTerminals(currentPage);
                     } catch (error: any) {

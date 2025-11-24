@@ -43,7 +43,7 @@ export default function BusSchedulesScreen() {
     const fetchBusSchedules = async (page = 1) => {
         try {
             setLoading(true);
-            const response = await api.get(`/jadwal-kelas-bus?page=${page}&per_page=10`);
+            const response = await api.get(`/api/jadwal-kelas-bus?page=${page}&per_page=10`);
             setBusSchedules(response.data.data || []);
             setTotalPages(response.data.last_page || 1);
             setCurrentPage(page);
@@ -70,7 +70,7 @@ export default function BusSchedulesScreen() {
                 style: "destructive",
                 onPress: async () => {
                     try {
-                        await api.delete(`/jadwal-kelas-bus/${id}`);
+                        await api.delete(`/api/jadwal-kelas-bus/${id}`);
                         Alert.alert("Berhasil", "Jadwal bus berhasil dihapus");
                         fetchBusSchedules(currentPage);
                     } catch (error: any) {

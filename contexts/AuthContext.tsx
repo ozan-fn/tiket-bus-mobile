@@ -6,7 +6,9 @@ interface User {
     id: number;
     name: string;
     email: string;
+    photo: string | null;
     roles: string[];
+    role: string;
 }
 
 interface AuthResponse {
@@ -19,7 +21,7 @@ interface AuthContextType {
     user: User | null;
     token: string | null;
     login: (email: string, password: string) => Promise<boolean>;
-    register: (email: string, password: string) => Promise<boolean>;
+    register: (name: string, email: string, password: string) => Promise<boolean>;
     logout: () => Promise<void>;
     isLoading: boolean;
 }
@@ -60,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const login = async (email: string, password: string): Promise<boolean> => {
         try {
-            const response = await api.post("/login", { email, password });
+            const response = await api.post("/api/login", { email, password });
             const data: AuthResponse = response.data;
             setUser(data.user);
             setToken(data.access_token);
@@ -73,9 +75,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const register = async (email: string, password: string): Promise<boolean> => {
+    const register = async (name: string, email: string, password: string): Promise<boolean> => {
         try {
-            const response = await api.post("/register", { email, password });
+            const response = await api.post("/api/register", { name, email, password });
             const data: AuthResponse = response.data;
             setUser(data.user);
             setToken(data.access_token);

@@ -23,7 +23,7 @@ export default function CreateRouteScreen() {
 
     const fetchTerminals = async () => {
         try {
-            const response = await api.get("/terminal");
+            const response = await api.get("/api/terminal");
             setTerminals(response.data.data || []);
         } catch (error: any) {
             Alert.alert("Error", "Gagal memuat terminal");
@@ -47,7 +47,7 @@ export default function CreateRouteScreen() {
 
         setLoading(true);
         try {
-            const response = await api.post("/rute", {
+            const response = await api.post("/api/rute", {
                 asal_terminal_id: parseInt(formData.asal_terminal_id),
                 tujuan_terminal_id: parseInt(formData.tujuan_terminal_id),
             });

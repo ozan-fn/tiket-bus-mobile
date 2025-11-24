@@ -26,7 +26,7 @@ export default function BusClassesScreen() {
     const fetchBusClasses = async (page = 1) => {
         try {
             setLoading(true);
-            const response = await api.get(`/kelas-bus?page=${page}&per_page=10`);
+            const response = await api.get(`/api/kelas-bus?page=${page}&per_page=10`);
             setBusClasses(response.data.data || []);
             setTotalPages(response.data.last_page || 1);
             setCurrentPage(page);
@@ -53,7 +53,7 @@ export default function BusClassesScreen() {
                 style: "destructive",
                 onPress: async () => {
                     try {
-                        await api.delete(`/kelas-bus/${id}`);
+                        await api.delete(`/api/kelas-bus/${id}`);
                         Alert.alert("Berhasil", "Kelas bus berhasil dihapus");
                         fetchBusClasses(currentPage);
                     } catch (error: any) {

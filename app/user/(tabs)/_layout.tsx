@@ -11,7 +11,7 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="index"
                 options={{
-                    title: "Dashboard",
+                    title: "Home",
                     headerShown: false,
                 }}
             />
@@ -19,6 +19,13 @@ export default function TabLayout() {
                 name="bookings"
                 options={{
                     title: "Bookings",
+                    headerShown: false,
+                }}
+            />
+            <Tabs.Screen
+                name="profile"
+                options={{
+                    title: "Profile",
                     headerShown: false,
                 }}
             />

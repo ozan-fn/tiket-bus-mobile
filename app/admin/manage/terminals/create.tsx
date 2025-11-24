@@ -21,7 +21,7 @@ export default function CreateTerminalScreen() {
 
         setLoading(true);
         try {
-            const response = await api.post("/terminal", formData);
+            const response = await api.post("/api/terminal", formData);
             Alert.alert("Berhasil", "Terminal berhasil ditambahkan");
             router.back();
         } catch (error: any) {

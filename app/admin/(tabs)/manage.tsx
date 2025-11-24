@@ -13,6 +13,7 @@ export default function ManageScreen() {
     };
 
     const masterDataItems = [
+        { title: "Bus", route: "/admin/manage/bus", color: "bg-orange-500" },
         { title: "Fasilitas", route: "/admin/manage/facilities", color: "bg-blue-500" },
         { title: "Rute", route: "/admin/manage/routes", color: "bg-green-500" },
         { title: "Terminal", route: "/admin/manage/terminals", color: "bg-yellow-500" },

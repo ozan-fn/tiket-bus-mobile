@@ -27,7 +27,7 @@ export default function CreateBusClassScreen() {
                 bus_id: parseInt(formData.bus_id),
                 jumlah_kursi: parseInt(formData.jumlah_kursi),
             };
-            await api.post("/kelas-bus", submitData);
+            await api.post("/api/kelas-bus", submitData);
             Alert.alert("Berhasil", "Kelas bus berhasil ditambahkan", [{ text: "OK", onPress: () => router.back() }]);
         } catch (error: any) {
             if (error.response?.status === 422) {

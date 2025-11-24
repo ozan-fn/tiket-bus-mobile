@@ -39,7 +39,7 @@ export default function EditDriverScreen() {
     const fetchDriver = async () => {
         try {
             setFetchLoading(true);
-            const response = await api.get(`/sopir/${id}`);
+            const response = await api.get(`/api/sopir/${id}`);
             const driver: Driver = response.data;
 
             setFormData({
@@ -76,7 +76,7 @@ export default function EditDriverScreen() {
 
         try {
             setLoading(true);
-            await api.put(`/sopir/${id}`, formData);
+            await api.put(`/api/sopir/${id}`, formData);
             Alert.alert("Berhasil", "Data sopir berhasil diperbarui", [{ text: "OK", onPress: () => router.back() }]);
         } catch (error: any) {
             if (error.response?.status === 422) {

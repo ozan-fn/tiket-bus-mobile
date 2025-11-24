@@ -29,7 +29,7 @@ export default function EditBusClassScreen() {
     const fetchBusClass = async () => {
         try {
             setFetchLoading(true);
-            const response = await api.get(`/kelas-bus/${id}`);
+            const response = await api.get(`/api/kelas-bus/${id}`);
             const busClass: BusClass = response.data;
 
             setFormData({
@@ -67,7 +67,7 @@ export default function EditBusClassScreen() {
                 bus_id: parseInt(formData.bus_id),
                 jumlah_kursi: parseInt(formData.jumlah_kursi),
             };
-            await api.put(`/kelas-bus/${id}`, submitData);
+            await api.put(`/api/kelas-bus/${id}`, submitData);
             Alert.alert("Berhasil", "Data kelas bus berhasil diperbarui", [{ text: "OK", onPress: () => router.back() }]);
         } catch (error: any) {
             if (error.response?.status === 422) {

@@ -4,7 +4,8 @@ import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { DatePicker, SelectPicker } from "../../../components/ui";
+import DatePicker from "../../../components/ui/DatePicker";
+import SelectPicker from "../../../components/ui/SelectPicker";
 
 export default function CreateDriverScreen() {
     const [loading, setLoading] = useState(false);
@@ -31,7 +32,7 @@ export default function CreateDriverScreen() {
                 ...formData,
                 tanggal_lahir: formData.tanggal_lahir ? formData.tanggal_lahir.toISOString().split("T")[0] : "",
             };
-            await api.post("/sopir", submitData);
+            await api.post("/api/sopir", submitData);
             Alert.alert("Berhasil", "Sopir berhasil ditambahkan", [{ text: "OK", onPress: () => router.back() }]);
         } catch (error: any) {
             if (error.response?.status === 422) {

@@ -26,7 +26,7 @@ export default function EditTerminalScreen() {
 
     const fetchTerminal = async () => {
         try {
-            const response = await api.get(`/terminal/${id}`);
+            const response = await api.get(`/api/terminal/${id}`);
             const terminal: Terminal = response.data.data;
             setFormData({
                 nama_terminal: terminal.nama_terminal,
@@ -52,7 +52,7 @@ export default function EditTerminalScreen() {
 
         setLoading(true);
         try {
-            const response = await api.put(`/terminal/${id}`, formData);
+            const response = await api.put(`/api/terminal/${id}`, formData);
             Alert.alert("Berhasil", "Terminal berhasil diperbarui");
             router.back();
         } catch (error: any) {

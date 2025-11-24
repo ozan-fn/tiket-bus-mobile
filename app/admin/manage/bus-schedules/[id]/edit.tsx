@@ -46,7 +46,7 @@ export default function EditBusScheduleScreen() {
 
     const fetchBusSchedule = async () => {
         try {
-            const response = await api.get(`/jadwal-kelas-bus/${id}`);
+            const response = await api.get(`/api/jadwal-kelas-bus/${id}`);
             const busSchedule: BusSchedule = response.data.data;
             setFormData({
                 jadwal_id: busSchedule.jadwal_id.toString(),
@@ -62,7 +62,7 @@ export default function EditBusScheduleScreen() {
 
     const fetchSchedules = async () => {
         try {
-            const response = await api.get("/jadwal");
+            const response = await api.get("/api/jadwal");
             setSchedules(response.data.data || []);
         } catch (error: any) {
             Alert.alert("Error", "Gagal memuat jadwal");
@@ -71,7 +71,7 @@ export default function EditBusScheduleScreen() {
 
     const fetchBusClasses = async () => {
         try {
-            const response = await api.get("/kelas-bus");
+            const response = await api.get("/api/kelas-bus");
             setBusClasses(response.data.data || []);
         } catch (error: any) {
             Alert.alert("Error", "Gagal memuat kelas bus");
@@ -92,7 +92,7 @@ export default function EditBusScheduleScreen() {
 
         setLoading(true);
         try {
-            const response = await api.put(`/jadwal-kelas-bus/${id}`, {
+            const response = await api.put(`/api/jadwal-kelas-bus/${id}`, {
                 jadwal_id: parseInt(formData.jadwal_id),
                 kelas_bus_id: parseInt(formData.kelas_bus_id),
                 harga: parseInt(formData.harga),

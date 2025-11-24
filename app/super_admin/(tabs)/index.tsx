@@ -20,7 +20,6 @@ export default function SuperAdminDashboard() {
                     <Text className="text-white">Logout</Text>
                 </TouchableOpacity>
             </View>
-            <StatusBar style="auto" />
         </View>
     );
 }
