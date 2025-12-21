@@ -50,8 +50,8 @@ export default function DriverLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: 'Home',
-            headerTitle: 'Driver Dashboard',
+            title: 'Beranda',
+            headerTitle: 'Dasbor Sopir',
             tabBarIcon: ({ color }) => <HomeIcon size={24} color={color} />,
           }}
         />
@@ -59,26 +59,34 @@ export default function DriverLayout() {
         <Tabs.Screen
           name="scan"
           options={{
-            title: 'Scan QR',
-            headerTitle: 'Scan Ticket',
+            title: 'Pindai QR',
+            headerTitle: 'Pindai Tiket',
             tabBarIcon: ({ color }) => <ScanIcon size={24} color={color} />,
           }}
         />
         <Tabs.Screen
           name="kursi"
           options={{
-            title: 'Seats',
-            headerTitle: 'Bus Seats',
+            title: 'Kursi',
+            headerTitle: 'Kursi Bus',
             tabBarIcon: ({ color }) => <ClipboardListIcon size={24} color={color} />,
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
-            title: 'Profile',
-            headerTitle: 'Profile',
+            title: 'Profil',
+            headerTitle: 'Profil',
             tabBarIcon: ({ color }) => <UserIcon size={24} color={color} />,
             headerRight: () => <ThemeToggle />,
+          }}
+        />
+        <Tabs.Screen
+          name="edit-profile"
+          options={{
+            href: null,
+            headerShown: true,
+            headerTitle: 'Edit Profil',
           }}
         />
       </Tabs>
