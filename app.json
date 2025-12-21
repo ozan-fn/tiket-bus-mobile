@@ -37,17 +37,12 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      ["./plugins/withOptProps.js"],
       "expo-router",
       [
         "expo-camera",
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to scan QR codes on tickets."
-        }
-      ],
-      [
-        "./withAbiFilters",
-        {
-          "abiFilters": ["armeabi-v7a", "x86"]
         }
       ]
     ],
