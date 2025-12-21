@@ -62,12 +62,11 @@ export function AutocompleteInput({
           option.sublabel?.toLowerCase().includes(value.toLowerCase())
       );
       setFilteredOptions(filtered);
-      if (filtered.length > 0 && value.length >= 2) {
+      if (filtered.length > 0) {
         setShowDropdown(true);
       }
     } else {
-      setFilteredOptions([]);
-      setShowDropdown(false);
+      setFilteredOptions(options);
     }
   }, [value, options]);
 
@@ -83,7 +82,7 @@ export function AutocompleteInput({
   };
 
   const handleFocus = () => {
-    if (filteredOptions.length > 0) {
+    if (options.length > 0) {
       setShowDropdown(true);
     }
   };
@@ -108,7 +107,7 @@ export function AutocompleteInput({
               borderColor: borderColor,
             },
           ]}
-          className="web:ring-offset-background flex h-12 w-full rounded-md border px-3 py-2 text-base web:ring-offset-2 web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-ring"
+          className="flex h-12 w-full rounded-md border px-3 py-2 text-base web:ring-offset-2 web:ring-offset-background web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-ring"
         />
 
         {/* Icons */}
@@ -156,8 +155,7 @@ export function AutocompleteInput({
                       key={`${option.value}-${index}`}
                       onPress={() => handleSelect(option)}
                       style={{
-                        backgroundColor:
-                          value === option.label ? hoverBgColor : 'transparent',
+                        backgroundColor: value === option.label ? hoverBgColor : 'transparent',
                       }}
                       className="border-b border-border px-4 py-3">
                       <Text className="font-medium">{option.label}</Text>
