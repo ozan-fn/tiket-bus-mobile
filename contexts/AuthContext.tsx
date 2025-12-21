@@ -50,12 +50,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!user && !inAuthGroup) {
         router.replace('/(auth)/sign-in');
       } else if (user && inAuthGroup) {
-        // Redirect based on role
-        if (userRole === 'agent') {
-          router.replace({ pathname: '/(agent)/' } as any);
-        } else {
-          router.replace({ pathname: '/(passenger)/' } as any);
-        }
+        // Redirect to root, let index.tsx handle role-based routing
+        router.replace('/');
       }
     }
   }, [user, segments, isLoading, userRole]);

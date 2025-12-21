@@ -13,9 +13,9 @@ export default function RootIndex() {
       if (!user) {
         router.replace('/(auth)/sign-in');
       } else if (userRole === 'driver') {
-        router.replace({ pathname: '/(driver)/' } as any);
+        router.replace({ pathname: '/(driver)' } as any);
       } else {
-        router.replace({ pathname: '/(passenger)/' } as any);
+        router.replace({ pathname: '/(passenger)' } as any);
       }
     }
   }, [user, userRole, isLoading]);

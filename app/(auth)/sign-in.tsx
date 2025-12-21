@@ -1,6 +1,6 @@
 import { SignInForm } from '@/components/sign-in-form';
 import { Stack } from 'expo-router';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 
 export default function SignInScreen() {
   return (
