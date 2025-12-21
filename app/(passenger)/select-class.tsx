@@ -10,7 +10,7 @@ import {
   CheckCircleIcon,
 } from 'lucide-react-native';
 import * as React from 'react';
-import { View, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { Icon } from '@/components/ui/icon';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
@@ -33,11 +33,18 @@ interface Jadwal {
     nama: string;
     plat_nomor: string;
     kapasitas: number;
+    photos: string[];
   };
   rute: {
     id: number;
-    asal: string;
-    tujuan: string;
+    asal: {
+      nama: string;
+      photos: string[];
+    };
+    tujuan: {
+      nama: string;
+      photos: string[];
+    };
   };
   kelas_tersedia: KelasBus[];
 }
@@ -80,7 +87,20 @@ export default function SelectClassScreen() {
   return (
     <ScrollView className="flex-1 bg-background">
       <View className="gap-6 p-6">
-        {/* Journey Summary */}
+        {/* Kartu Foto Bus */}
+        <View className="items-center rounded-xl border border-border bg-card">
+          {jadwal.bus.photos && jadwal.bus.photos.length > 0 ? (
+            <Image
+              source={{ uri: jadwal.bus.photos[0] }}
+              className="h-32 w-full rounded-lg"
+              resizeMode="cover"
+            />
+          ) : (
+            <Icon as={BusIcon} className="size-12 text-primary" />
+          )}
+        </View>
+
+        {/* Ringkasan Perjalanan */}
         <View className="gap-4 rounded-xl border border-border bg-card p-4">
           <View className="flex-row items-center gap-2">
             <Icon as={BusIcon} className="size-5 text-primary" />
@@ -90,9 +110,9 @@ export default function SelectClassScreen() {
           <View className="gap-2 border-t border-border pt-3">
             <View className="flex-row items-center gap-2">
               <Icon as={MapPinIcon} className="size-4 text-muted-foreground" />
-              <Text className="flex-1 text-sm">{jadwal.rute.asal}</Text>
+              <Text className="flex-1 text-sm">{jadwal.rute.asal.nama}</Text>
               <Icon as={ArrowRightIcon} className="size-4 text-muted-foreground" />
-              <Text className="flex-1 text-right text-sm">{jadwal.rute.tujuan}</Text>
+              <Text className="flex-1 text-right text-sm">{jadwal.rute.tujuan.nama}</Text>
             </View>
 
             <View className="flex-row items-center gap-2">
@@ -105,15 +125,18 @@ export default function SelectClassScreen() {
             <View className="flex-row items-center gap-2">
               <Icon as={ClockIcon} className="size-4 text-muted-foreground" />
               <Text className="text-sm text-muted-foreground">
-                {jadwal.jam_berangkat.substring(0, 5)}
+                {new Date(jadwal.jam_berangkat).toLocaleTimeString('id-ID', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Select Class Section */}
+        {/* Bagian Pilih Kelas */}
         <View className="gap-3">
-          <Text className="text-lg font-semibold">Select Bus Class</Text>
+          <Text className="text-lg font-semibold">Pilih Kelas Bus</Text>
 
           <View className="gap-3">
             {jadwal.kelas_tersedia.map((kelas) => (
@@ -137,16 +160,13 @@ export default function SelectClassScreen() {
                       </View>
 
                       <View className="flex-row items-center gap-2">
-                        <Badge
-                          variant={kelas.kursi_tersedia > 10 ? 'default' : 'destructive'}>
-                          <Text className="text-xs">
-                            {kelas.kursi_tersedia} seats available
-                          </Text>
+                        <Badge variant={kelas.kursi_tersedia > 10 ? 'default' : 'destructive'}>
+                          <Text className="text-xs">{kelas.kursi_tersedia} kursi tersedia</Text>
                         </Badge>
                       </View>
 
                       <Text className="text-xs text-muted-foreground">
-                        Total capacity: {kelas.total_kursi} seats
+                        Kapasitas total: {kelas.total_kursi} kursi
                       </Text>
                     </View>
 
@@ -154,14 +174,14 @@ export default function SelectClassScreen() {
                       <Text className="text-2xl font-bold text-primary">
                         Rp {Math.floor(kelas.harga / 1000)}K
                       </Text>
-                      <Text className="text-xs text-muted-foreground">per person</Text>
+                      <Text className="text-xs text-muted-foreground">per orang</Text>
                     </View>
                   </View>
 
                   {kelas.kursi_tersedia === 0 && (
                     <View className="rounded-lg bg-destructive/10 p-3">
                       <Text className="text-center text-sm text-destructive">
-                        Sold Out - No seats available
+                        Habis Terjual - Tidak ada kursi tersedia
                       </Text>
                     </View>
                   )}
@@ -171,17 +191,17 @@ export default function SelectClassScreen() {
           </View>
         </View>
 
-        {/* Price Breakdown (if class selected) */}
+        {/* Rincian Harga (jika kelas dipilih) */}
         {selectedClass && (
           <View className="gap-3 rounded-xl border border-border bg-card p-4">
-            <Text className="font-semibold">Price Summary</Text>
+            <Text className="font-semibold">Ringkasan Harga</Text>
             <View className="gap-2">
               <View className="flex-row items-center justify-between">
-                <Text className="text-sm text-muted-foreground">Class</Text>
+                <Text className="text-sm text-muted-foreground">Kelas</Text>
                 <Text className="text-sm font-medium">{selectedClass.nama_kelas}</Text>
               </View>
               <View className="flex-row items-center justify-between">
-                <Text className="text-sm text-muted-foreground">Price per ticket</Text>
+                <Text className="text-sm text-muted-foreground">Harga per tiket</Text>
                 <Text className="text-sm font-medium">
                   Rp {selectedClass.harga.toLocaleString('id-ID')}
                 </Text>
@@ -198,16 +218,16 @@ export default function SelectClassScreen() {
           </View>
         )}
 
-        {/* Continue Button */}
+        {/* Tombol Lanjut */}
         <View className="gap-2 pb-6">
           <Button
             className="w-full"
             onPress={handleContinue}
             disabled={!selectedClass || selectedClass.kursi_tersedia === 0}>
-            <Text>Continue to Select Seat</Text>
+            <Text>Lanjut ke Pilih Kursi</Text>
           </Button>
           <Button variant="outline" onPress={() => router.back()}>
-            <Text>Back to Search Results</Text>
+            <Text>Kembali ke Hasil Pencarian</Text>
           </Button>
         </View>
       </View>

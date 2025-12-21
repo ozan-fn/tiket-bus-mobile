@@ -34,31 +34,32 @@ export default function PassengerLayout() {
           tabBarActiveTintColor: colorScheme === 'dark' ? '#fff' : '#000',
           headerShown: true,
           headerStyle: {
-            backgroundColor: colorScheme === 'dark' ? '#000' : '#fff',
+            backgroundColor: `hsl(${colorScheme === 'dark' ? '60 2.7027% 14.5098%' : '48 33.3333% 97.0588%'})`,
           },
           headerTintColor: colorScheme === 'dark' ? '#fff' : '#000',
         }}>
         <Tabs.Screen
           name="index"
           options={{
-            title: 'Home',
-            headerTitle: 'Home',
+            headerShown: false,
+            title: 'Beranda',
+            headerTitle: '',
             tabBarIcon: ({ color }) => <HomeIcon size={24} color={color} />,
           }}
         />
         <Tabs.Screen
           name="tickets"
           options={{
-            title: 'My Tickets',
-            headerTitle: 'My Tickets',
+            title: 'Tiket Saya',
+            headerTitle: 'Tiket Saya',
             tabBarIcon: ({ color }) => <TicketIcon size={24} color={color} />,
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
-            title: 'Profile',
-            headerTitle: 'Profile',
+            title: 'Profil',
+            headerTitle: 'Profil',
             tabBarIcon: ({ color }) => <UserIcon size={24} color={color} />,
             headerRight: () => <ThemeToggle />,
           }}
@@ -70,7 +71,7 @@ export default function PassengerLayout() {
           options={{
             href: null,
             headerShown: true,
-            headerTitle: 'Search Results',
+            headerTitle: 'Hasil Pencarian',
           }}
         />
         <Tabs.Screen
@@ -78,7 +79,7 @@ export default function PassengerLayout() {
           options={{
             href: null,
             headerShown: true,
-            headerTitle: 'Select Class',
+            headerTitle: 'Pilih Kelas',
           }}
         />
         <Tabs.Screen
@@ -86,7 +87,7 @@ export default function PassengerLayout() {
           options={{
             href: null,
             headerShown: true,
-            headerTitle: 'Select Seat',
+            headerTitle: 'Pilih Kursi',
           }}
         />
         <Tabs.Screen
@@ -94,7 +95,7 @@ export default function PassengerLayout() {
           options={{
             href: null,
             headerShown: true,
-            headerTitle: 'Booking Confirmed',
+            headerTitle: 'Pemesanan Dikonfirmasi',
           }}
         />
         <Tabs.Screen
@@ -102,7 +103,7 @@ export default function PassengerLayout() {
           options={{
             href: null,
             headerShown: true,
-            headerTitle: 'Ticket Detail',
+            headerTitle: 'Detail Tiket',
           }}
         />
         <Tabs.Screen
@@ -110,7 +111,7 @@ export default function PassengerLayout() {
           options={{
             href: null,
             headerShown: true,
-            headerTitle: 'Payment Callback',
+            headerTitle: 'Callback Pembayaran',
           }}
         />
         <Tabs.Screen
@@ -118,7 +119,7 @@ export default function PassengerLayout() {
           options={{
             href: null,
             headerShown: true,
-            headerTitle: 'Edit Profile',
+            headerTitle: 'Edit Profil',
           }}
         />
       </Tabs>

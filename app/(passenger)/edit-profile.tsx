@@ -23,7 +23,7 @@ import {
 } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { Icon } from '@/components/ui/icon';
-import { apiUpdateProfile, apiGetProfile, apiUploadPhoto } from '@/lib/api';
+import { apiUpdateProfile, apiGetProfile, apiUploadPhoto, apiUpdatePassword } from '@/lib/api';
 import * as ImagePicker from 'expo-image-picker';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 
@@ -35,6 +35,12 @@ interface EditProfileData {
   jenis_kelamin: string;
   nomor_telepon: string;
   photo?: string; // URI of selected photo
+}
+
+interface PasswordData {
+  current_password: string;
+  new_password: string;
+  new_password_confirmation: string;
 }
 
 export default function EditProfileScreen() {
@@ -53,9 +59,17 @@ export default function EditProfileScreen() {
     value: string;
     label: string;
   } | null>(null);
+  const [passwordData, setPasswordData] = React.useState<PasswordData>({
+    current_password: '',
+    new_password: '',
+    new_password_confirmation: '',
+  });
   const [isLoading, setIsLoading] = React.useState(true);
+  const [isUpdatingPassword, setIsUpdatingPassword] = React.useState(false);
   const [message, setMessage] = React.useState('');
+  const [passwordMessage, setPasswordMessage] = React.useState('');
   const [isSuccess, setIsSuccess] = React.useState(false);
+  const [isPasswordSuccess, setIsPasswordSuccess] = React.useState(false);
 
   React.useEffect(() => {
     fetchProfile();
@@ -166,6 +180,33 @@ export default function EditProfileScreen() {
     setIsLoading(false);
   };
 
+  const handleUpdatePassword = async () => {
+    if (passwordData.new_password !== passwordData.new_password_confirmation) {
+      setPasswordMessage('Password baru dan konfirmasi tidak cocok');
+      setIsPasswordSuccess(false);
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    setPasswordMessage('');
+    setIsPasswordSuccess(false);
+
+    const response = await apiUpdatePassword(passwordData);
+    if (response.error) {
+      setPasswordMessage(response.error);
+      setIsPasswordSuccess(false);
+    } else {
+      setPasswordMessage('Password berhasil diupdate!');
+      setIsPasswordSuccess(true);
+      setPasswordData({
+        current_password: '',
+        new_password: '',
+        new_password_confirmation: '',
+      });
+    }
+    setIsUpdatingPassword(false);
+  };
+
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background">
@@ -194,7 +235,6 @@ export default function EditProfileScreen() {
                 <Icon as={CameraIcon} className="size-4 text-secondary-foreground" />
               </View>
             </TouchableOpacity>
-            <Text className="text-xl font-bold">Edit Profile</Text>
             <Text className="text-sm text-muted-foreground">Tap avatar to change photo</Text>
           </View>
 
@@ -272,12 +312,74 @@ export default function EditProfileScreen() {
             </View>
           </View>
 
+          {/* Password Update Section */}
+          <View className="gap-4">
+            <Text className="text-lg font-semibold">Ubah Password</Text>
+
+            <View className="gap-2">
+              <Label>Password Lama</Label>
+              <Input
+                value={passwordData.current_password}
+                onChangeText={(value) =>
+                  setPasswordData((prev) => ({ ...prev, current_password: value }))
+                }
+                placeholder="Masukkan password lama"
+                secureTextEntry
+              />
+            </View>
+
+            <View className="gap-2">
+              <Label>Password Baru</Label>
+              <Input
+                value={passwordData.new_password}
+                onChangeText={(value) =>
+                  setPasswordData((prev) => ({ ...prev, new_password: value }))
+                }
+                placeholder="Masukkan password baru"
+                secureTextEntry
+              />
+            </View>
+
+            <View className="gap-2">
+              <Label>Konfirmasi Password Baru</Label>
+              <Input
+                value={passwordData.new_password_confirmation}
+                onChangeText={(value) =>
+                  setPasswordData((prev) => ({ ...prev, new_password_confirmation: value }))
+                }
+                placeholder="Konfirmasi password baru"
+                secureTextEntry
+              />
+            </View>
+
+            {/* Password Message */}
+            {passwordMessage && (
+              <Alert
+                icon={isPasswordSuccess ? CheckCircleIcon : XCircleIcon}
+                variant={isPasswordSuccess ? 'default' : 'destructive'}>
+                <AlertTitle>{isPasswordSuccess ? 'Berhasil' : 'Kesalahan'}</AlertTitle>
+                <AlertDescription>{passwordMessage}</AlertDescription>
+              </Alert>
+            )}
+
+            <Button className="w-full" onPress={handleUpdatePassword} disabled={isUpdatingPassword}>
+              {isUpdatingPassword ? (
+                <View className="flex-row items-center gap-2">
+                  <ActivityIndicator size="small" color="white" />
+                  <Text>Mengupdate...</Text>
+                </View>
+              ) : (
+                <Text>Update Password</Text>
+              )}
+            </Button>
+          </View>
+
           {/* Message */}
           {message && (
             <Alert
               icon={isSuccess ? CheckCircleIcon : XCircleIcon}
               variant={isSuccess ? 'default' : 'destructive'}>
-              <AlertTitle>{isSuccess ? 'Success' : 'Error'}</AlertTitle>
+              <AlertTitle>{isSuccess ? 'Berhasil' : 'Kesalahan'}</AlertTitle>
               <AlertDescription>{message}</AlertDescription>
             </Alert>
           )}

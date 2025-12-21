@@ -86,7 +86,7 @@ export default function BookingSuccessScreen() {
     });
   };
 
-  const handleCreatePayment = async (metode: 'xendit' | 'transfer' | 'tunai') => {
+  const handleCreatePayment = async (metode: 'xendit' | 'tunai') => {
     setIsCreatingPayment(true);
 
     const successUrl = 'tiketbus://payment-callback?status=success';
@@ -118,9 +118,7 @@ export default function BookingSuccessScreen() {
         Alert.alert(
           'Pembayaran Dibuat',
           `Pembayaran dengan metode ${metode} berhasil dibuat. ${
-            metode === 'transfer' || metode === 'tunai'
-              ? 'Silakan lakukan pembayaran dan tunggu konfirmasi dari admin.'
-              : ''
+            metode === 'tunai' ? 'Silakan lakukan pembayaran dan tunggu konfirmasi dari admin.' : ''
           }`,
           [
             {
@@ -139,7 +137,7 @@ export default function BookingSuccessScreen() {
     setShowPaymentDialog(true);
   };
 
-  const handlePaymentMethodSelect = async (metode: 'xendit' | 'transfer' | 'tunai') => {
+  const handlePaymentMethodSelect = async (metode: 'xendit' | 'tunai') => {
     setShowPaymentDialog(false);
     await handleCreatePayment(metode);
   };
@@ -414,23 +412,6 @@ export default function BookingSuccessScreen() {
                   <Text className="font-semibold">Xendit (Online)</Text>
                   <Text className="text-sm text-muted-foreground">
                     Pembayaran otomatis via gateway
-                  </Text>
-                </View>
-                <Icon as={ArrowRightIcon} className="size-5 text-muted-foreground" />
-              </Pressable>
-
-              {/* Transfer Option */}
-              <Pressable
-                onPress={() => handlePaymentMethodSelect('transfer')}
-                disabled={isCreatingPayment}
-                className="flex-row items-center gap-3 rounded-lg border border-border bg-card p-4 active:bg-accent web:hover:bg-accent">
-                <View className="rounded-full bg-primary/10 p-3">
-                  <Icon as={CreditCardIcon} className="size-5 text-primary" />
-                </View>
-                <View className="flex-1">
-                  <Text className="font-semibold">Transfer Bank</Text>
-                  <Text className="text-sm text-muted-foreground">
-                    Transfer manual, perlu verifikasi admin
                   </Text>
                 </View>
                 <Icon as={ArrowRightIcon} className="size-5 text-muted-foreground" />

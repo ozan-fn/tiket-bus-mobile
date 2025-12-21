@@ -85,10 +85,18 @@ interface Jadwal {
   jam_berangkat: string;
   bus: {
     nama: string;
+    photos: string[];
   };
   rute: {
-    asal: string;
-    tujuan: string;
+    id: number;
+    asal: {
+      nama: string;
+      photos: string[];
+    };
+    tujuan: {
+      nama: string;
+      photos: string[];
+    };
   };
 }
 
@@ -163,12 +171,12 @@ export default function SelectSeatScreen() {
     const response = await apiGetKursi(parseInt(jadwalId), parseInt(jadwalKelasBusId));
 
     if (response.error) {
-      setError(response.error);
+      setError('Gagal memuat kursi');
       setKursiData(null);
     } else if (response.success && response.data) {
       setKursiData(response.data);
     } else {
-      setError('Failed to load seats');
+      setError('Gagal memuat kursi');
     }
 
     setIsLoading(false);
@@ -198,7 +206,7 @@ export default function SelectSeatScreen() {
   const handleConfirmPassengerInfo = () => {
     // Validate passenger
     if (!passenger.nama || !passenger.nik || !passenger.jenis_kelamin || !passenger.nomor_telepon) {
-      setError('Please fill all passenger information.');
+      setError('Silakan lengkapi semua informasi penumpang.');
       return;
     }
     setShowPassengerForm(false);
@@ -223,7 +231,7 @@ export default function SelectSeatScreen() {
         },
       } as any);
     } else {
-      setError(response.error || 'Failed to book ticket');
+      setError(response.error || 'Gagal memesan tiket');
     }
 
     setIsBooking(false);
@@ -246,18 +254,18 @@ export default function SelectSeatScreen() {
     <View className="gap-4">
       <View className="flex-row items-center gap-2">
         <Icon as={UserIcon} className="size-4 text-primary" />
-        <Text className="font-semibold">Passenger Information</Text>
+        <Text className="font-semibold">Informasi Penumpang</Text>
       </View>
 
       <View className="gap-3 rounded-lg border border-border p-4">
-        <Text className="font-medium">Passenger Information</Text>
+        <Text className="font-medium">Informasi Penumpang</Text>
 
         <View className="gap-2">
           <Label>Nama</Label>
           <Input
             value={passenger.nama}
             onChangeText={(value) => updatePassenger('nama', value)}
-            placeholder="Enter full name"
+            placeholder="Masukkan nama lengkap"
           />
         </View>
 
@@ -266,7 +274,7 @@ export default function SelectSeatScreen() {
           <Input
             value={passenger.nik}
             onChangeText={(value) => updatePassenger('nik', value)}
-            placeholder="Enter NIK"
+            placeholder="Masukkan NIK"
             keyboardType="numeric"
           />
         </View>
@@ -277,7 +285,7 @@ export default function SelectSeatScreen() {
             value={passenger.jenis_kelamin as any}
             onValueChange={(option) => updatePassenger('jenis_kelamin', option as any)}>
             <SelectTrigger>
-              <SelectValue placeholder="Select gender" />
+              <SelectValue placeholder="Pilih jenis kelamin" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="L" label="Laki-laki">
@@ -295,7 +303,7 @@ export default function SelectSeatScreen() {
           <Input
             value={passenger.nomor_telepon}
             onChangeText={(value) => updatePassenger('nomor_telepon', value)}
-            placeholder="Enter phone number"
+            placeholder="Masukkan nomor telepon"
             keyboardType="phone-pad"
           />
         </View>
@@ -336,7 +344,7 @@ export default function SelectSeatScreen() {
   return (
     <ScrollView className="flex-1 bg-background">
       <View className="gap-6 p-6">
-        {/* Journey Summary */}
+        {/* Ringkasan Perjalanan */}
         <View className="gap-3 rounded-xl border border-border bg-card p-4">
           <View className="flex-row items-center gap-2">
             <Icon as={BusIcon} className="size-4 text-primary" />
@@ -346,9 +354,9 @@ export default function SelectSeatScreen() {
 
           <View className="flex-row items-center gap-2">
             <Icon as={MapPinIcon} className="size-4 text-muted-foreground" />
-            <Text className="flex-1 text-sm">{jadwal.rute.asal}</Text>
+            <Text className="flex-1 text-sm">{jadwal.rute.asal.nama}</Text>
             <Icon as={ArrowRightIcon} className="size-4 text-muted-foreground" />
-            <Text className="flex-1 text-right text-sm">{jadwal.rute.tujuan}</Text>
+            <Text className="flex-1 text-right text-sm">{jadwal.rute.tujuan.nama}</Text>
           </View>
         </View>
 
@@ -356,7 +364,7 @@ export default function SelectSeatScreen() {
         {isLoading && (
           <View className="items-center justify-center py-12">
             <ActivityIndicator size="large" />
-            <Text className="mt-4 text-muted-foreground">Loading seat layout...</Text>
+            <Text className="mt-4 text-muted-foreground">Memuat tata letak kursi...</Text>
           </View>
         )}
 
@@ -366,7 +374,7 @@ export default function SelectSeatScreen() {
             <Icon as={XCircleIcon} className="size-12 text-destructive" />
             <Text className="text-center text-sm text-muted-foreground">{error}</Text>
             <Button onPress={fetchKursi}>
-              <Text>Retry</Text>
+              <Text>Coba Lagi</Text>
             </Button>
           </View>
         )}
@@ -376,20 +384,20 @@ export default function SelectSeatScreen() {
           <>
             {/* Legend */}
             <View className="gap-3">
-              <Text className="text-lg font-semibold">Select Your Seat</Text>
+              <Text className="text-lg font-semibold">Pilih Kursi Anda</Text>
 
               <View className="flex-row items-center justify-around rounded-lg bg-muted p-3">
                 <View className="flex-row items-center gap-2">
                   <View className="h-6 w-6 rounded border-2 border-border bg-card" />
-                  <Text className="text-xs">Available</Text>
+                  <Text className="text-xs">Tersedia</Text>
                 </View>
                 <View className="flex-row items-center gap-2">
                   <View className="h-6 w-6 rounded border-2 border-primary bg-primary" />
-                  <Text className="text-xs">Selected</Text>
+                  <Text className="text-xs">Terpilih</Text>
                 </View>
                 <View className="flex-row items-center gap-2">
                   <View className="h-6 w-6 rounded border-2 border-muted bg-muted" />
-                  <Text className="text-xs">Occupied</Text>
+                  <Text className="text-xs">Terisi</Text>
                 </View>
               </View>
             </View>
@@ -398,7 +406,7 @@ export default function SelectSeatScreen() {
             <View className="gap-4 rounded-xl border border-border bg-card p-4">
               {/* Driver Section */}
               <View className="items-center rounded-lg bg-muted p-3">
-                <Text className="text-xs font-semibold text-muted-foreground">DRIVER</Text>
+                <Text className="text-xs font-semibold text-muted-foreground">SOPIR</Text>
               </View>
 
               {/* Seats */}
@@ -427,20 +435,20 @@ export default function SelectSeatScreen() {
               <View className="gap-3 rounded-xl border border-primary bg-primary/5 p-4">
                 <View className="flex-row items-center gap-2">
                   <Icon as={CheckCircleIcon} className="size-5 text-primary" />
-                  <Text className="text-lg font-semibold">Selected Seat</Text>
+                  <Text className="text-lg font-semibold">Kursi Terpilih</Text>
                 </View>
 
                 <View className="gap-2">
                   <View className="flex-row items-center justify-between">
-                    <Text className="text-sm text-muted-foreground">Seat Number</Text>
+                    <Text className="text-sm text-muted-foreground">Nomor Kursi</Text>
                     <Text className="text-sm font-semibold">{selectedSeat.nomor_kursi}</Text>
                   </View>
                   <View className="flex-row items-center justify-between">
-                    <Text className="text-sm text-muted-foreground">Position</Text>
+                    <Text className="text-sm text-muted-foreground">Posisi</Text>
                     <Text className="text-sm font-semibold capitalize">{selectedSeat.posisi}</Text>
                   </View>
                   <View className="flex-row items-center justify-between border-t border-border pt-2">
-                    <Text className="font-semibold">Total Price</Text>
+                    <Text className="font-semibold">Total Harga</Text>
                     <Text className="text-xl font-bold text-primary">
                       Rp {kursiData.harga.toLocaleString('id-ID')}
                     </Text>
@@ -458,10 +466,10 @@ export default function SelectSeatScreen() {
                 className="w-full"
                 onPress={handleConfirmPassengerInfo}
                 disabled={!selectedSeat || isBooking}>
-                <Text>{isBooking ? 'Processing...' : 'Continue to Confirm'}</Text>
+                <Text>{isBooking ? 'Memproses...' : 'Lanjut ke Konfirmasi'}</Text>
               </Button>
               <Button variant="outline" onPress={() => router.back()} disabled={isBooking}>
-                <Text>Back to Select Class</Text>
+                <Text>Kembali ke Pilih Kelas</Text>
               </Button>
             </View>
           </>
@@ -472,16 +480,16 @@ export default function SelectSeatScreen() {
       <Dialog open={showPassengerForm} onOpenChange={setShowPassengerForm}>
         <DialogContent className="max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle>Enter Passenger Details</DialogTitle>
-            <DialogDescription>Please provide information for the passengers.</DialogDescription>
+            <DialogTitle>Masukkan Detail Penumpang</DialogTitle>
+            <DialogDescription>Silakan isi informasi penumpang.</DialogDescription>
           </DialogHeader>
           <ScrollView className="flex-1">{renderPassengerForm()}</ScrollView>
           <DialogFooter>
             <Button variant="outline" onPress={() => setShowPassengerForm(false)}>
-              <Text>Cancel</Text>
+              <Text>Batal</Text>
             </Button>
             <Button onPress={handleConfirmPassengerInfo}>
-              <Text>Confirm</Text>
+              <Text>Konfirmasi</Text>
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -491,24 +499,24 @@ export default function SelectSeatScreen() {
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Booking</AlertDialogTitle>
+            <AlertDialogTitle>Konfirmasi Pemesanan</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to book this ticket?{'\n\n'}
+              Apakah Anda yakin ingin memesan tiket ini?{'\n\n'}
               <Text className="font-semibold">
-                Seat: {selectedSeat?.nomor_kursi}
+                Nomor Kursi: {selectedSeat?.nomor_kursi}
                 {'\n'}
-                Price: Rp {kursiData?.harga.toLocaleString('id-ID')}
+                Harga: Rp {kursiData?.harga.toLocaleString('id-ID')}
                 {'\n\n'}
-                Passenger: {passenger.nama}
+                Penumpang: {passenger.nama}
               </Text>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>
-              <Text>Cancel</Text>
+              <Text>Batal</Text>
             </AlertDialogCancel>
             <AlertDialogAction onPress={confirmBooking}>
-              <Text>Confirm</Text>
+              <Text>Konfirmasi</Text>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

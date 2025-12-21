@@ -9,7 +9,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   TicketIcon,
@@ -22,7 +21,16 @@ import {
   AlertCircleIcon,
 } from 'lucide-react-native';
 import * as React from 'react';
-import { View, ScrollView, ActivityIndicator, Linking, Alert, Pressable } from 'react-native';
+import {
+  View,
+  ScrollView,
+  ActivityIndicator,
+  Linking,
+  Alert,
+  Pressable,
+  Image,
+  RefreshControl,
+} from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { Icon } from '@/components/ui/icon';
 import { apiGetMyTickets, apiCreatePayment } from '@/lib/api';
@@ -32,6 +40,9 @@ interface Ticket {
   id: number;
   kode_tiket: string;
   nama_penumpang: string;
+  bus: {
+    photos: string[];
+  };
   rute: {
     asal: string;
     tujuan: string;
@@ -41,9 +52,34 @@ interface Ticket {
   kelas: string;
   kursi: string;
   harga: number;
-  status: string;
+  status: string; // will be normalized to one of: 'dipesan'|'dibayar'|'batal'|'selesai'
   waktu_pesan: string;
   payment_url?: string;
+}
+
+/**
+ * Normalize various possible status values from backend into the four canonical statuses:
+ * - 'dipesan'  -> belum bayar / pending
+ * - 'dibayar'  -> sudah bayar
+ * - 'batal'    -> dibatalkan
+ * - 'selesai'  -> selesai / used
+ */
+function normalizeStatus(raw?: string): 'dipesan' | 'dibayar' | 'batal' | 'selesai' {
+  if (!raw) return 'dipesan';
+  const s = raw.toString().trim().toLowerCase();
+
+  // common mappings (extend as backend varies)
+  if (['dipesan', 'pending', 'booked', 'unpaid', 'waiting_payment'].includes(s)) return 'dipesan';
+  if (['dibayar', 'paid', 'paid_success', 'paid_pending', 'settled'].includes(s)) return 'dibayar';
+  if (['batal', 'cancel', 'cancelled', 'canceled'].includes(s)) return 'batal';
+  if (['selesai', 'completed', 'finished', 'used'].includes(s)) return 'selesai';
+
+  // fallback: if contains keywords
+  if (s.includes('paid') || s.includes('dibayar')) return 'dibayar';
+  if (s.includes('cancel') || s.includes('batal')) return 'batal';
+  if (s.includes('complete') || s.includes('selesai') || s.includes('used')) return 'selesai';
+
+  return 'dipesan';
 }
 
 export default function PassengerTicketsScreen() {
@@ -56,27 +92,86 @@ export default function PassengerTicketsScreen() {
   const [activeTab, setActiveTab] = React.useState('dipesan');
   const [showPaymentDialog, setShowPaymentDialog] = React.useState(false);
   const [selectedTicket, setSelectedTicket] = React.useState<Ticket | null>(null);
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  // polling ref to keep updating pending tickets status
+  const pollingRef = React.useRef<number | null>(null);
+  const POLL_INTERVAL_MS = 15000;
 
   React.useEffect(() => {
     fetchTickets();
+
+    return () => {
+      // cleanup polling on unmount
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchTickets = async () => {
-    setIsLoading(true);
+  const startPolling = (intervalMs = POLL_INTERVAL_MS) => {
+    if (pollingRef.current) return;
+    pollingRef.current = setInterval(() => {
+      fetchTickets(false);
+    }, intervalMs) as unknown as number;
+  };
+
+  const stopPolling = () => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  };
+
+  /**
+   * Fetch tickets from API and normalize statuses so they appear in correct tabs.
+   * Also starts polling if there are pending tickets.
+   */
+  const fetchTickets = async (isRefresh = false) => {
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setIsLoading(true);
+    }
     setError('');
 
-    const response = await apiGetMyTickets();
+    try {
+      const response = await apiGetMyTickets();
 
-    if (response.error) {
-      setError(response.error);
-      setTickets([]);
-    } else if (response.success && response.data) {
-      setTickets(response.data);
-    } else {
-      setTickets([]);
+      if (response.error) {
+        setError(response.error);
+        setTickets([]);
+      } else if (response.success && response.data) {
+        // Normalize statuses
+        const normalized: Ticket[] = response.data.map((t: any) => {
+          const normalizedStatus = normalizeStatus(t.status);
+          return {
+            ...t,
+            status: normalizedStatus,
+          } as Ticket;
+        });
+
+        setTickets(normalized);
+
+        // If there are still pending tickets, ensure polling runs
+        const hasPending = normalized.some((t) => t.status === 'dipesan');
+        if (hasPending) startPolling();
+        else stopPolling();
+      } else {
+        setTickets([]);
+        stopPolling();
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Gagal memuat tiket');
+    } finally {
+      if (isRefresh) {
+        setRefreshing(false);
+      } else {
+        setIsLoading(false);
+      }
     }
-
-    setIsLoading(false);
   };
 
   const formatDate = (dateStr: string) => {
@@ -125,52 +220,65 @@ export default function PassengerTicketsScreen() {
     } as any);
   };
 
-  const handleCreatePayment = async (ticket: Ticket, metode: 'xendit' | 'transfer' | 'tunai') => {
+  const handleCreatePayment = async (ticket: Ticket, metode: 'xendit' | 'tunai') => {
     setIsCreatingPayment(true);
 
     const successUrl = 'tiketbus://payment-callback?status=success';
     const failureUrl = 'tiketbus://payment-callback?status=failed';
 
-    const response = await apiCreatePayment(
-      ticket.id,
-      metode,
-      metode === 'xendit' ? successUrl : undefined,
-      metode === 'xendit' ? failureUrl : undefined
-    );
+    try {
+      const response = await apiCreatePayment(
+        ticket.id,
+        metode,
+        metode === 'xendit' ? successUrl : undefined,
+        metode === 'xendit' ? failureUrl : undefined
+      );
 
-    setIsCreatingPayment(false);
+      if (response.success && response.data) {
+        // Start polling so UI reflects status changes once payment is confirmed
+        startPolling();
 
-    if (response.success && response.data) {
-      if (metode === 'xendit' && response.data.invoice_url) {
-        try {
-          const supported = await Linking.canOpenURL(response.data.invoice_url);
-          if (supported) {
-            await Linking.openURL(response.data.invoice_url);
-          } else {
-            Alert.alert('Error', 'Tidak dapat membuka link pembayaran');
+        if (metode === 'xendit' && response.data.invoice_url) {
+          try {
+            const supported = await Linking.canOpenURL(response.data.invoice_url);
+            if (supported) {
+              await Linking.openURL(response.data.invoice_url);
+              // fetch immediately after opening to pick any quick updates
+              fetchTickets();
+            } else {
+              Alert.alert('Error', 'Tidak dapat membuka link pembayaran');
+            }
+          } catch (error) {
+            console.log('Error opening payment URL:', error);
+            Alert.alert('Error', 'Gagal membuka halaman pembayaran');
           }
-        } catch (error) {
-          console.log('Error opening payment URL:', error);
-          Alert.alert('Error', 'Gagal membuka halaman pembayaran');
+        } else {
+          // transfer / tunai flow: ask user to confirm and refresh list
+          Alert.alert(
+            'Pembayaran Dibuat',
+            `Pembayaran dengan metode ${metode} berhasil dibuat. ${
+              metode === 'tunai'
+                ? 'Silakan lakukan pembayaran dan tunggu konfirmasi dari admin.'
+                : ''
+            }`,
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  fetchTickets(false);
+                  startPolling();
+                },
+              },
+            ]
+          );
         }
       } else {
-        Alert.alert(
-          'Pembayaran Dibuat',
-          `Pembayaran dengan metode ${metode} berhasil dibuat. ${
-            metode === 'transfer' || metode === 'tunai'
-              ? 'Silakan lakukan pembayaran dan tunggu konfirmasi dari admin.'
-              : ''
-          }`,
-          [
-            {
-              text: 'OK',
-              onPress: () => fetchTickets(),
-            },
-          ]
-        );
+        Alert.alert('Error', response.error || 'Gagal membuat pembayaran');
       }
-    } else {
-      Alert.alert('Error', response.error || 'Gagal membuat pembayaran');
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Gagal membuat pembayaran');
+    } finally {
+      setIsCreatingPayment(false);
     }
   };
 
@@ -179,20 +287,35 @@ export default function PassengerTicketsScreen() {
     setShowPaymentDialog(true);
   };
 
-  const handlePaymentMethodSelect = async (metode: 'xendit' | 'transfer' | 'tunai') => {
+  const handlePaymentMethodSelect = async (metode: 'xendit' | 'tunai') => {
     if (selectedTicket) {
       setShowPaymentDialog(false);
       await handleCreatePayment(selectedTicket, metode);
     }
   };
 
-  // Separate tickets by status
+  // Separate tickets by normalized status (ensures they appear on correct tabs)
   const pendingTickets = tickets.filter((t) => t.status === 'dipesan');
   const upcomingTickets = tickets.filter((t) => t.status === 'dibayar');
   const pastTickets = tickets.filter((t) => t.status === 'selesai' || t.status === 'batal');
 
+  // React to pendingTickets length change to start/stop polling proactively
+  React.useEffect(() => {
+    if (pendingTickets.length > 0) {
+      startPolling();
+    } else {
+      stopPolling();
+    }
+    // only when pending count changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingTickets.length]);
+
   return (
-    <ScrollView className="flex-1 bg-background">
+    <ScrollView
+      className="flex-1 bg-background"
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={() => fetchTickets(true)} />
+      }>
       <View className="gap-6 p-6">
         {/* Loading State */}
         {isLoading && (
@@ -210,7 +333,7 @@ export default function PassengerTicketsScreen() {
               <Text className="text-center text-lg font-semibold">Kesalahan</Text>
               <Text className="text-center text-sm text-muted-foreground">{error}</Text>
             </View>
-            <Button onPress={fetchTickets}>
+            <Button onPress={() => fetchTickets()}>
               <Icon as={RefreshCwIcon} className="mr-2 size-4" />
               <Text>Coba Lagi</Text>
             </Button>
@@ -297,6 +420,17 @@ export default function PassengerTicketsScreen() {
                           <Text className="text-xs">{getStatusLabel(ticket.status)}</Text>
                         </Badge>
                       </View>
+
+                      {/* Bus Image */}
+                      {ticket.bus && ticket.bus.photos && ticket.bus.photos.length > 0 && (
+                        <View className="items-center">
+                          <Image
+                            source={{ uri: ticket.bus.photos[0] }}
+                            className="h-20 w-full rounded-lg"
+                            resizeMode="cover"
+                          />
+                        </View>
+                      )}
 
                       {/* Route */}
                       <View className="flex-row items-center gap-2 border-t border-border pt-3">
@@ -403,6 +537,17 @@ export default function PassengerTicketsScreen() {
                         </Badge>
                       </View>
 
+                      {/* Bus Image */}
+                      {ticket.bus && ticket.bus.photos && ticket.bus.photos.length > 0 && (
+                        <View className="items-center">
+                          <Image
+                            source={{ uri: ticket.bus.photos[0] }}
+                            className="h-20 w-full rounded-lg"
+                            resizeMode="cover"
+                          />
+                        </View>
+                      )}
+
                       {/* Route */}
                       <View className="flex-row items-center gap-2 border-t border-border pt-3">
                         <Icon as={MapPinIcon} className="size-4 text-muted-foreground" />
@@ -488,6 +633,17 @@ export default function PassengerTicketsScreen() {
                         </Badge>
                       </View>
 
+                      {/* Bus Image */}
+                      {ticket.bus && ticket.bus.photos && ticket.bus.photos.length > 0 && (
+                        <View className="items-center">
+                          <Image
+                            source={{ uri: ticket.bus.photos[0] }}
+                            className="h-20 w-full rounded-lg"
+                            resizeMode="cover"
+                          />
+                        </View>
+                      )}
+
                       {/* Route */}
                       <View className="flex-row items-center gap-2 border-t border-border pt-3">
                         <Icon as={MapPinIcon} className="size-4 text-muted-foreground" />
@@ -546,7 +702,7 @@ export default function PassengerTicketsScreen() {
 
         {/* Refresh Button */}
         {!isLoading && !error && tickets.length > 0 && (
-          <Button variant="outline" onPress={fetchTickets}>
+          <Button variant="outline" onPress={() => fetchTickets()}>
             <Icon as={RefreshCwIcon} className="mr-2 size-4" />
             <Text>Muat Ulang</Text>
           </Button>
@@ -575,23 +731,6 @@ export default function PassengerTicketsScreen() {
                   <Text className="font-semibold">Xendit (Online)</Text>
                   <Text className="text-sm text-muted-foreground">
                     Pembayaran otomatis via gateway
-                  </Text>
-                </View>
-                <Icon as={ArrowRightIcon} className="size-5 text-muted-foreground" />
-              </Pressable>
-
-              {/* Transfer Option */}
-              <Pressable
-                onPress={() => handlePaymentMethodSelect('transfer')}
-                disabled={isCreatingPayment}
-                className="flex-row items-center gap-3 rounded-lg border border-border bg-card p-4 active:bg-accent web:hover:bg-accent">
-                <View className="rounded-full bg-primary/10 p-3">
-                  <Icon as={CreditCardIcon} className="size-5 text-primary" />
-                </View>
-                <View className="flex-1">
-                  <Text className="font-semibold">Transfer Bank</Text>
-                  <Text className="text-sm text-muted-foreground">
-                    Transfer manual, perlu verifikasi admin
                   </Text>
                 </View>
                 <Icon as={ArrowRightIcon} className="size-5 text-muted-foreground" />

@@ -23,11 +23,21 @@ import {
   RefreshCwIcon,
   XCircleIcon,
   AlertCircleIcon,
+  TicketIcon as TicketSvg,
 } from 'lucide-react-native';
 import * as React from 'react';
-import { View, ScrollView, ActivityIndicator, Linking, Alert, Pressable } from 'react-native';
+import {
+  View,
+  ScrollView,
+  ActivityIndicator,
+  Linking,
+  Alert,
+  Pressable,
+  Image,
+} from 'react-native';
 import { Icon } from '@/components/ui/icon';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { apiGetTicketDetail, apiCreatePayment } from '@/lib/api';
 import QRCode from 'react-native-qrcode-svg';
 
@@ -40,11 +50,13 @@ interface TicketDetail {
   tanggal_lahir: string;
   nomor_telepon: string;
   email: string;
+  photo: string;
   bus: {
     id: number;
     nama: string;
     plat_nomor: string;
     kapasitas: number;
+    photos: string[];
   };
   sopir: {
     id: number;
@@ -105,29 +117,38 @@ export default function TicketDetailScreen() {
   const [isCreatingPayment, setIsCreatingPayment] = React.useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = React.useState(false);
 
-  React.useEffect(() => {
-    if (ticketId) {
-      fetchTicketDetail();
-    }
-  }, [ticketId]);
-
-  const fetchTicketDetail = async () => {
+  // Fetch ticket detail
+  const fetchTicketDetail = React.useCallback(async () => {
+    if (!ticketId) return;
     setIsLoading(true);
     setError('');
 
-    const response = await apiGetTicketDetail(parseInt(ticketId));
+    try {
+      const response = await apiGetTicketDetail(parseInt(ticketId));
 
-    if (response.error) {
-      setError(response.error);
+      if (response.error) {
+        setError(response.error);
+        setTicket(null);
+      } else if (response.success && response.data) {
+        setTicket(response.data);
+      } else {
+        setError('Failed to load ticket detail');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to load ticket detail');
       setTicket(null);
-    } else if (response.success && response.data) {
-      setTicket(response.data);
-    } else {
-      setError('Failed to load ticket detail');
+    } finally {
+      setIsLoading(false);
     }
+  }, [ticketId]);
 
-    setIsLoading(false);
-  };
+  // Ensure ticket detail refreshes whenever the screen gains focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchTicketDetail();
+      // no cleanup needed here
+    }, [fetchTicketDetail])
+  );
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -205,7 +226,7 @@ export default function TicketDetailScreen() {
     }
   };
 
-  const handleCreatePayment = async (metode: 'xendit' | 'transfer' | 'tunai') => {
+  const handleCreatePayment = async (metode: 'xendit' | 'tunai') => {
     if (!ticket) return;
 
     setIsCreatingPayment(true);
@@ -213,46 +234,50 @@ export default function TicketDetailScreen() {
     const successUrl = 'tiketbus://payment-callback?status=success';
     const failureUrl = 'tiketbus://payment-callback?status=failed';
 
-    const response = await apiCreatePayment(
-      ticket.id,
-      metode,
-      metode === 'xendit' ? successUrl : undefined,
-      metode === 'xendit' ? failureUrl : undefined
-    );
+    try {
+      const response = await apiCreatePayment(
+        ticket.id,
+        metode,
+        metode === 'xendit' ? successUrl : undefined,
+        metode === 'xendit' ? failureUrl : undefined
+      );
 
-    setIsCreatingPayment(false);
-
-    if (response.success && response.data) {
-      if (metode === 'xendit' && response.data.invoice_url) {
-        try {
-          const supported = await Linking.canOpenURL(response.data.invoice_url);
-          if (supported) {
-            await Linking.openURL(response.data.invoice_url);
-          } else {
-            Alert.alert('Error', 'Tidak dapat membuka link pembayaran');
+      if (response.success && response.data) {
+        if (metode === 'xendit' && response.data.invoice_url) {
+          try {
+            const supported = await Linking.canOpenURL(response.data.invoice_url);
+            if (supported) {
+              await Linking.openURL(response.data.invoice_url);
+            } else {
+              Alert.alert('Error', 'Tidak dapat membuka link pembayaran');
+            }
+          } catch (error) {
+            console.log('Error opening payment URL:', error);
+            Alert.alert('Error', 'Gagal membuka halaman pembayaran');
           }
-        } catch (error) {
-          console.log('Error opening payment URL:', error);
-          Alert.alert('Error', 'Gagal membuka halaman pembayaran');
+        } else {
+          Alert.alert(
+            'Pembayaran Dibuat',
+            `Pembayaran dengan metode ${metode} berhasil dibuat. ${
+              metode === 'tunai'
+                ? 'Silakan lakukan pembayaran dan tunggu konfirmasi dari admin.'
+                : ''
+            }`,
+            [
+              {
+                text: 'OK',
+                onPress: () => fetchTicketDetail(),
+              },
+            ]
+          );
         }
       } else {
-        Alert.alert(
-          'Pembayaran Dibuat',
-          `Pembayaran dengan metode ${metode} berhasil dibuat. ${
-            metode === 'transfer' || metode === 'tunai'
-              ? 'Silakan lakukan pembayaran dan tunggu konfirmasi dari admin.'
-              : ''
-          }`,
-          [
-            {
-              text: 'OK',
-              onPress: () => fetchTicketDetail(),
-            },
-          ]
-        );
+        Alert.alert('Error', response.error || 'Gagal membuat pembayaran');
       }
-    } else {
-      Alert.alert('Error', response.error || 'Gagal membuat pembayaran');
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Gagal membuat pembayaran');
+    } finally {
+      setIsCreatingPayment(false);
     }
   };
 
@@ -260,7 +285,7 @@ export default function TicketDetailScreen() {
     setShowPaymentDialog(true);
   };
 
-  const handlePaymentMethodSelect = async (metode: 'xendit' | 'transfer' | 'tunai') => {
+  const handlePaymentMethodSelect = async (metode: 'xendit' | 'tunai') => {
     setShowPaymentDialog(false);
     await handleCreatePayment(metode);
   };
@@ -375,6 +400,17 @@ export default function TicketDetailScreen() {
                 <Icon as={BusIcon} className="size-4 text-primary" />
                 <Text className="font-semibold">Bus & Jadwal</Text>
               </View>
+
+              {/* Bus Image */}
+              {ticket.bus.photos && ticket.bus.photos.length > 0 && (
+                <View className="mb-3 items-center">
+                  <Image
+                    source={{ uri: ticket.bus.photos[0] }}
+                    className="h-32 w-full rounded-lg"
+                    resizeMode="cover"
+                  />
+                </View>
+              )}
 
               <View className="gap-2">
                 <View className="flex-row items-center justify-between">
@@ -589,30 +625,13 @@ export default function TicketDetailScreen() {
                     <Icon as={ArrowRightIcon} className="size-5 text-muted-foreground" />
                   </Pressable>
 
-                  {/* Transfer Option */}
-                  <Pressable
-                    onPress={() => handlePaymentMethodSelect('transfer')}
-                    disabled={isCreatingPayment}
-                    className="flex-row items-center gap-3 rounded-lg border border-border bg-card p-4 active:bg-accent web:hover:bg-accent">
-                    <View className="rounded-full bg-primary/10 p-3">
-                      <Icon as={CreditCardIcon} className="size-5 text-primary" />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="font-semibold">Transfer Bank</Text>
-                      <Text className="text-sm text-muted-foreground">
-                        Transfer manual, perlu verifikasi admin
-                      </Text>
-                    </View>
-                    <Icon as={ArrowRightIcon} className="size-5 text-muted-foreground" />
-                  </Pressable>
-
                   {/* Tunai Option */}
                   <Pressable
                     onPress={() => handlePaymentMethodSelect('tunai')}
                     disabled={isCreatingPayment}
                     className="flex-row items-center gap-3 rounded-lg border border-border bg-card p-4 active:bg-accent web:hover:bg-accent">
                     <View className="rounded-full bg-primary/10 p-3">
-                      <Icon as={TicketIcon} className="size-5 text-primary" />
+                      <Icon as={TicketSvg} className="size-5 text-primary" />
                     </View>
                     <View className="flex-1">
                       <Text className="font-semibold">Tunai di Loket</Text>
