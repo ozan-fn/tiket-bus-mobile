@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": ".",
-    "slug": ".",
+    "name": "tiket-bus",
+    "slug": "tiket-bus",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -17,8 +17,10 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "This app uses the camera to scan QR codes on tickets."
-      }
+        "NSCameraUsageDescription": "This app uses the camera to scan QR codes on tickets.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "id.my.ozan.tiketbus"
     },
     "android": {
       "edgeToEdgeEnabled": true,
@@ -26,8 +28,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["android.permission.CAMERA"],
-      "usesCleartextTraffic": true
+      "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
+      "package": "id.my.ozan.tiketbus"
     },
     "web": {
       "bundler": "metro",
@@ -41,10 +43,23 @@
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to scan QR codes on tickets."
         }
+      ],
+      [
+        "./withAbiFilters",
+        {
+          "abiFilters": ["armeabi-v7a", "x86"]
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b71d522e-a94d-4b46-87bc-f5f2b5e5da50"
+      }
+    },
+    "owner": "ozan6825"
   }
 }
