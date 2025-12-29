@@ -110,14 +110,14 @@ export function SearchCard({
               className="pl-10"
             />
           </View>
-          <View className="flex-row gap-2">
+          {/*<View className="flex-row gap-2">
             <Button variant="outline" size="sm" onPress={setToday} className="flex-1">
               <Text className="text-xs">Hari Ini</Text>
             </Button>
             <Button variant="outline" size="sm" onPress={setTomorrow} className="flex-1">
               <Text className="text-xs">Besok</Text>
             </Button>
-          </View>
+          </View>*/}
         </View>
       </View>
 

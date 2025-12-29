@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { UserIcon, CheckCircleIcon, XCircleIcon, CameraIcon } from 'lucide-react-native';
 import * as React from 'react';
 import {
@@ -71,9 +71,11 @@ export default function EditProfileScreen() {
   const [isSuccess, setIsSuccess] = React.useState(false);
   const [isPasswordSuccess, setIsPasswordSuccess] = React.useState(false);
 
-  React.useEffect(() => {
-    fetchProfile();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchProfile();
+    }, [])
+  );
 
   const fetchProfile = async () => {
     setIsLoading(true);
@@ -139,9 +141,12 @@ export default function EditProfileScreen() {
 
     console.log('Sending editData:', editData);
 
-    // Upload photo if selected
+    // Determine if the current photo value is a remote URL (already uploaded)
+    const isRemotePhoto = editData.photo && /^https?:\/\//i.test(editData.photo);
+
+    // Upload photo only if the user selected a new local image (not a remote URL)
     let photoUrl = '';
-    if (editData.photo) {
+    if (editData.photo && !isRemotePhoto) {
       const uploadResponse = await apiUploadPhoto(editData.photo);
       if (uploadResponse.error) {
         setMessage(uploadResponse.error);
@@ -151,10 +156,15 @@ export default function EditProfileScreen() {
       photoUrl = uploadResponse.url || ''; // Assuming response has url
     }
 
-    // Update profile with photo if uploaded
-    const profileData = { ...editData };
+    // Prepare profile payload:
+    // - If we uploaded a new photo, include the uploaded photo URL
+    // - If the photo is a remote URL (unchanged) or empty, do NOT include the photo field so backend keeps existing image
+    const profileData: any = { ...editData };
     if (photoUrl) {
       profileData.photo = photoUrl;
+    } else {
+      // remove photo field to avoid sending an existing URL (which may trigger validation)
+      delete profileData.photo;
     }
 
     const response = await apiUpdateProfile(profileData);
@@ -175,6 +185,14 @@ export default function EditProfileScreen() {
           nomor_telepon: response.user.nomor_telepon || '',
           photo: response.user.photo || '',
         });
+        setSelectedGender(
+          response.user.jenis_kelamin
+            ? {
+                value: response.user.jenis_kelamin,
+                label: response.user.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan',
+              }
+            : null
+        );
       }
     }
     setIsLoading(false);
@@ -312,6 +330,43 @@ export default function EditProfileScreen() {
             </View>
           </View>
 
+          {/* Divider between profile and password */}
+          <View className="my-4 h-px bg-border" />
+
+          {/* Message */}
+          {message && (
+            <Alert
+              icon={isSuccess ? CheckCircleIcon : XCircleIcon}
+              variant={isSuccess ? 'default' : 'destructive'}>
+              <AlertTitle>{isSuccess ? 'Berhasil' : 'Kesalahan'}</AlertTitle>
+              <AlertDescription>{message}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* Actions */}
+          <View className="gap-3">
+            <Button className="w-full" onPress={handleSaveProfile} disabled={isLoading}>
+              {isLoading ? (
+                <View className="flex-row items-center gap-2">
+                  <ActivityIndicator size="small" color="white" />
+                  <Text>Menyimpan...</Text>
+                </View>
+              ) : (
+                <Text>Simpan Perubahan</Text>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onPress={() => router.back()}
+              disabled={isLoading}>
+              <Text>Batal</Text>
+            </Button>
+          </View>
+
+          {/* Divider between profile and password */}
+          <View className="my-4 h-px bg-border" />
+
           {/* Password Update Section */}
           <View className="gap-4">
             <Text className="text-lg font-semibold">Ubah Password</Text>
@@ -371,37 +426,6 @@ export default function EditProfileScreen() {
               ) : (
                 <Text>Update Password</Text>
               )}
-            </Button>
-          </View>
-
-          {/* Message */}
-          {message && (
-            <Alert
-              icon={isSuccess ? CheckCircleIcon : XCircleIcon}
-              variant={isSuccess ? 'default' : 'destructive'}>
-              <AlertTitle>{isSuccess ? 'Berhasil' : 'Kesalahan'}</AlertTitle>
-              <AlertDescription>{message}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* Actions */}
-          <View className="gap-3">
-            <Button className="w-full" onPress={handleSaveProfile} disabled={isLoading}>
-              {isLoading ? (
-                <View className="flex-row items-center gap-2">
-                  <ActivityIndicator size="small" color="white" />
-                  <Text>Menyimpan...</Text>
-                </View>
-              ) : (
-                <Text>Simpan Perubahan</Text>
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              onPress={() => router.back()}
-              disabled={isLoading}>
-              <Text>Batal</Text>
             </Button>
           </View>
         </View>

@@ -216,13 +216,21 @@ export default function DriverSeatsScreen() {
 
   if (schedules.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center bg-background p-6">
+      <ScrollView
+        className="flex-1 bg-background"
+        contentContainerStyle={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 24,
+        }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         <Icon as={BusIcon} className="mb-4 size-16 text-muted-foreground" />
         <Text className="text-center text-lg font-semibold">Tidak Ada Jadwal</Text>
         <Text className="text-center text-sm text-muted-foreground">
           Tidak ditemukan jadwal apapun. Kursi tidak dapat ditampilkan.
         </Text>
-      </View>
+      </ScrollView>
     );
   }
 

@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ScanIcon, CheckCircleIcon, XCircleIcon, UserIcon, BusIcon } from 'lucide-react-native';
 import * as React from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { Icon } from '@/components/ui/icon';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
@@ -103,6 +103,7 @@ export default function DriverScanScreen() {
   const [schedules, setSchedules] = React.useState<Schedule[]>([]);
   const [isLoadingSchedules, setIsLoadingSchedules] = React.useState(true);
   const [schedulesError, setSchedulesError] = React.useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
 
   const handleBarCodeScanned = async ({ data }: { data: string }) => {
     if (!isScanning || isVerifying) return;
@@ -144,6 +145,12 @@ export default function DriverScanScreen() {
     } else {
       setSchedulesError(result.error || 'Failed to load schedules');
     }
+  };
+
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchSchedules();
+    setIsRefreshing(false);
   };
 
   React.useEffect(() => {
@@ -208,13 +215,21 @@ export default function DriverScanScreen() {
 
   if (!latestSchedule) {
     return (
-      <View className="flex-1 items-center justify-center bg-background p-6">
+      <ScrollView
+        className="flex-1 bg-background"
+        contentContainerStyle={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 24,
+        }}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}>
         <Icon as={ScanIcon} className="mb-4 size-16 text-muted-foreground" />
         <Text className="text-center text-lg font-semibold">Tidak Ada Jadwal</Text>
         <Text className="text-center text-sm text-muted-foreground">
           Tidak ditemukan jadwal apapun. Scan QR tidak dapat dilakukan.
         </Text>
-      </View>
+      </ScrollView>
     );
   }
 

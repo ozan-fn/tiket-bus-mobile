@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { UserIcon, CheckCircleIcon, XCircleIcon, CameraIcon } from 'lucide-react-native';
 import * as React from 'react';
 import {
@@ -54,9 +54,11 @@ export default function EditProfileScreen() {
   const [isSuccess, setIsSuccess] = React.useState(false);
   const [isPasswordSuccess, setIsPasswordSuccess] = React.useState(false);
 
-  React.useEffect(() => {
-    fetchProfile();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchProfile();
+    }, [])
+  );
 
   const fetchProfile = async () => {
     setIsLoading(true);

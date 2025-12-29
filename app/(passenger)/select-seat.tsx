@@ -30,7 +30,7 @@ import {
 import * as React from 'react';
 import { View, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Icon } from '@/components/ui/icon';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { apiGetKursi, apiCreateTiket, apiGetProfile } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -139,10 +139,12 @@ export default function SelectSeatScreen() {
     nomor_telepon: '',
   });
 
-  React.useEffect(() => {
-    fetchKursi();
-    fetchProfile();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchKursi();
+      fetchProfile();
+    }, [jadwalId, jadwalKelasBusId])
+  );
 
   const fetchProfile = async () => {
     const response = await apiGetProfile();

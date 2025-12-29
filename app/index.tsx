@@ -9,9 +9,10 @@ export default function RootIndex() {
 
   React.useEffect(() => {
     if (!isLoading) {
-      console.log(userRole);
+      console.log(user);
       if (!user) {
-        router.replace('/(auth)/sign-in');
+        // navigate to the grouped auth landing page
+        router.replace('/(auth)/landing');
       } else if (userRole === 'driver') {
         router.replace({ pathname: '/(driver)' } as any);
       } else {

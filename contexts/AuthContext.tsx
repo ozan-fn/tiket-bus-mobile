@@ -48,7 +48,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (!isLoading) {
       if (!user && !inAuthGroup) {
-        router.replace('/(auth)/sign-in');
+        // Redirect unauthenticated users to the auth landing page instead of sign-in
+        router.replace('/(auth)/landing');
       } else if (user && inAuthGroup) {
         // Redirect to root, let index.tsx handle role-based routing
         router.replace('/');

@@ -14,8 +14,7 @@ const withOptProps = (config) => {
     };
 
     set('expo.useLegacyPackaging', 'true');
-    set('android.enableMinifyInReleaseBuilds', 'true');
-    // Ini mengaktifkan fitur split secara global flag
+    // set('android.enableMinifyInReleaseBuilds', 'true');
     set('android.enableShrinkResourcesInReleaseBuilds', 'true');
 
     // Kita hapus quotes dari targetABIs untuk gradle.properties (karena formatnya beda: a,b bukan "a","b")
